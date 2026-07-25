@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Emploi du temps{% endblock %}
+{% block page_title %}Emploi du temps{% endblock %}
+
+{% block content %}
+<div class="schedule-page">
+    <section class="schedule-hero">
+        <div class="hero-copy">
+            <span class="hero-kicker"><i class="fas fa-calendar-week"></i> ORGANISATION ACADÉMIQUE</span>
+            <h1>Emploi du temps hebdomadaire</h1>
+            <p>Consultez les cours planifiés pour la promotion autorisée.</p>
+        </div>
+        {% if can_choose_promotion and promotions|length > 1 %}
+        <form method="get" class="promotion-picker">
+            <label for="promotion">Promotion affichée</label>
+            <div><select id="promotion" name="promotion" onchange="this.form.submit()">{% for item in promotions %}<option value="{{ item.pk }}" {% if promotion.pk == item.pk %}selected{% endif %}>{{ item.libelle }} · {{ item.filiere.codfiliere }}</option>{% endfor %}</select><i class="fas fa-chevron-down"></i></div>
+        </form>
+        {% endif %}
+    </section>
+
+    {% if promotion %}
+    <section class="identity-card">
+        <div class="school-mark"><i class="fas fa-graduation-cap"></i></div>
+        <div class="identity-main"><span>SECTION / FILIÈRE</span><strong>{{ promotion.filiere.libelle }}</strong><small>{{ promotion.filiere.codfiliere }}</small></div>
+        <div class="identity-item"><span>PROMOTION</span><strong>{{ promotion.libelle }}</strong></div>
+        <div class="identity-item"><span>ANNÉE ACADÉMIQUE</span><strong>{{ promotion.annee_debut }} – {{ promotion.annee_fin }}</strong></div>
+        <div class="access-pill"><i class="fas fa-shield-alt"></i><span>Vue sécurisée<small>Horaire de votre promotion</small></span></div>
+    </section>
+
+    <section class="schedule-card">
+        <header class="schedule-card-header">
+            <div><span>PLANNING DES COURS</span><h2>{{ promotion.libelle }} — {{ promotion.filiere.codfiliere }}</h2></div>
+            <div class="schedule-legend"><span><i class="dot course"></i>Cours</span><span><i class="dot pause"></i>Pause</span></div>
+        </header>
+
+        {% if grid_rows %}
+        <div class="schedule-scroll">
+            <table class="schedule-table">
+                <thead><tr><th class="time-heading"><i class="far fa-clock"></i> Heures</th>{% for day, label in jours %}<th><span>JOUR {{ day }}</span>{{ label }}</th>{% endfor %}</tr></thead>
+                <tbody>
+                {% for row in grid_rows %}
+                    <tr>
+                        <th class="time-cell"><strong>{{ row.heure_debut|time:"H\hi" }}</strong><i></i><strong>{{ row.heure_fin|time:"H\hi" }}</strong></th>
+                        {% for item in row.cells %}
+                        <td>{% if item %}<article class="course-slot"><div class="course-code">{{ item.cours.codcours }}</div><h3>{{ item.cours.libelle }}</h3><p><i class="fas fa-user-tie"></i> {{ item.enseignant.utilisateur.nom|upper }} {{ item.enseignant.utilisateur.prenom|first }}.</p>{% if item.salle %}<span><i class="fas fa-door-open"></i> {{ item.salle }}</span>{% endif %}</article>{% else %}<div class="free-slot"><span>—</span><small>Libre</small></div>{% endif %}</td>
+                        {% endfor %}
+                    </tr>
+                    {% if row.pause_after %}<tr class="pause-row"><th>{{ row.pause_after.debut|time:"H\hi" }} – {{ row.pause_after.fin|time:"H\hi" }}</th><td colspan="6"><i class="fas fa-mug-hot"></i><strong>PAUSE</strong><span>Interclasse</span></td></tr>{% endif %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <footer class="schedule-footer"><p><i class="fas fa-info-circle"></i> Cet horaire est propre à <strong>{{ promotion.libelle }}</strong>. Toute modification publiée sera visible ici.</p><button type="button" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button></footer>
+        {% else %}
+        <div class="empty-schedule"><div><i class="far fa-calendar"></i></div><span>PLANNING À VENIR</span><h3>Aucun cours n'est encore planifié</h3><p>L'horaire de {{ promotion.libelle }} apparaîtra ici dès sa publication par l'administration.</p></div>
+        {% endif %}
+    </section>
+    {% else %}
+    <section class="no-access"><div><i class="fas fa-calendar-times"></i></div><span>AUCUNE PROMOTION ACTIVE</span><h2>Aucun horaire disponible</h2><p>Votre compte n'est actuellement rattaché à aucune promotion active. Contactez le secrétariat académique pour vérifier votre inscription.</p></section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.schedule-page{max-width:1500px;margin:0 auto}.schedule-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:22px}.hero-kicker{display:block;color:#2563eb;font-size:.68rem;font-weight:800;letter-spacing:.16em;margin-bottom:7px}.hero-kicker i{margin-right:6px}.hero-copy h1{color:#0f172a;font-size:1.65rem;line-height:1.2;margin-bottom:7px}.hero-copy p{color:#64748b;font-size:.86rem}.promotion-picker{min-width:270px}.promotion-picker label{display:block;color:#64748b;font-size:.66rem;font-weight:700;margin-bottom:6px}.promotion-picker>div{position:relative}.promotion-picker select{width:100%;height:43px;appearance:none;border:1px solid #dbe4f0;border-radius:11px;background:#fff;color:#1e293b;padding:0 38px 0 13px;font-size:.76rem;font-weight:600;outline:none;box-shadow:0 6px 18px rgba(15,23,42,.05)}.promotion-picker select:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}.promotion-picker i{position:absolute;right:13px;top:15px;color:#64748b;font-size:.65rem;pointer-events:none}
+.identity-card{display:grid;grid-template-columns:auto minmax(210px,1.3fr) 1fr 1fr auto;align-items:center;gap:18px;margin-bottom:18px;padding:17px 19px;border:1px solid #e2e8f0;border-radius:16px;background:linear-gradient(135deg,#fff,#f8fbff);box-shadow:0 10px 30px rgba(15,23,42,.055)}.school-mark{display:grid;place-items:center;width:47px;height:47px;border-radius:13px;background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;font-size:1.25rem;box-shadow:0 8px 18px rgba(37,99,235,.22)}.identity-main,.identity-item{display:flex;flex-direction:column;border-right:1px solid #e8edf4;padding-right:18px}.identity-card span{color:#94a3b8;font-size:.56rem;font-weight:800;letter-spacing:.12em;margin-bottom:4px}.identity-card strong{color:#1e293b;font-size:.78rem}.identity-main strong{font-size:.86rem}.identity-card small{color:#64748b;font-size:.62rem;margin-top:2px}.access-pill{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid #bbf7d0;border-radius:10px;background:#f0fdf4;color:#16a34a}.access-pill>i{font-size:.9rem}.access-pill span{display:flex;flex-direction:column;color:#15803d;font-size:.62rem;letter-spacing:0;margin:0}.access-pill small{color:#4ade80;font-size:.54rem}
+.schedule-card{overflow:hidden;border:1px solid #e1e8f1;border-radius:19px;background:#fff;box-shadow:0 18px 50px rgba(15,23,42,.075)}.schedule-card-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 22px;border-bottom:1px solid #e8edf4;background:linear-gradient(100deg,#f8fbff,#fff)}.schedule-card-header>div:first-child>span{display:block;color:#2563eb;font-size:.61rem;font-weight:800;letter-spacing:.15em;margin-bottom:5px}.schedule-card-header h2{color:#172033;font-size:1.03rem}.schedule-legend{display:flex;gap:13px;color:#64748b;font-size:.64rem}.schedule-legend span{display:flex;align-items:center;gap:6px}.dot{width:7px;height:7px;border-radius:50%}.dot.course{background:#3b82f6;box-shadow:0 0 7px #60a5fa}.dot.pause{background:#f59e0b;box-shadow:0 0 7px #fbbf24}.schedule-scroll{overflow-x:auto}.schedule-table{width:100%;min-width:1050px;border-collapse:separate;border-spacing:0;table-layout:fixed}.schedule-table thead th{height:58px;padding:10px;border-right:1px solid #e6ebf2;border-bottom:1px solid #dde5ef;background:#f8fafc;color:#334155;font-size:.76rem;text-align:center}.schedule-table thead th:last-child{border-right:0}.schedule-table thead th span{display:block;color:#94a3b8;font-size:.49rem;font-weight:800;letter-spacing:.12em;margin-bottom:3px}.schedule-table .time-heading{width:115px;color:#64748b}.schedule-table tbody>tr>th,.schedule-table tbody>tr>td{height:142px;border-right:1px solid #e8edf4;border-bottom:1px solid #e8edf4;padding:8px;vertical-align:middle}.schedule-table tbody>tr>td:last-child{border-right:0}.time-cell{text-align:center;background:#fafcff}.time-cell strong{display:block;color:#334155;font-size:.67rem}.time-cell i{display:block;width:1px;height:15px;margin:4px auto;background:#cbd5e1}.course-slot{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:11px;border:1px solid #dbeafe;border-radius:12px;background:linear-gradient(145deg,#eff6ff,#f8fbff);text-align:center;transition:.2s}.course-slot:hover{transform:translateY(-2px);border-color:#93c5fd;box-shadow:0 8px 20px rgba(37,99,235,.1)}.course-code{padding:3px 6px;border-radius:5px;background:#dbeafe;color:#2563eb;font-size:.48rem;font-weight:800;letter-spacing:.08em}.course-slot h3{color:#1e3a8a;font-size:.72rem;line-height:1.3;margin:7px 0 6px}.course-slot p{color:#475569;font-size:.59rem;font-weight:600}.course-slot p i{color:#3b82f6;margin-right:3px}.course-slot>span{margin-top:6px;color:#94a3b8;font-size:.54rem}.free-slot{display:flex;flex-direction:column;align-items:center;color:#cbd5e1}.free-slot span{font-size:1.1rem}.free-slot small{font-size:.55rem}.pause-row th{height:42px!important;background:#fffbeb!important;color:#a16207!important;font-size:.56rem!important}.pause-row td{height:42px!important;padding:0!important;text-align:center;background:repeating-linear-gradient(135deg,#fffbeb,#fffbeb 10px,#fef3c7 10px,#fef3c7 11px);color:#b45309}.pause-row td i{margin-right:8px}.pause-row td strong{font-size:.66rem;letter-spacing:.14em}.pause-row td span{font-size:.55rem;margin-left:8px;color:#d97706}.schedule-footer{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px 21px;background:#fafcff}.schedule-footer p{color:#64748b;font-size:.64rem}.schedule-footer p i{color:#3b82f6;margin-right:5px}.schedule-footer button{white-space:nowrap;border:1px solid #dbe4f0;border-radius:8px;background:#fff;color:#475569;padding:8px 11px;font-size:.64rem;font-weight:700;cursor:pointer}.schedule-footer button:hover{border-color:#93c5fd;color:#2563eb}.empty-schedule,.no-access{text-align:center;padding:65px 20px}.empty-schedule>div,.no-access>div{display:grid;place-items:center;width:70px;height:70px;margin:0 auto 18px;border:1px solid #dbeafe;border-radius:20px;background:#eff6ff;color:#3b82f6;font-size:1.45rem}.empty-schedule>span,.no-access>span{color:#3b82f6;font-size:.6rem;font-weight:800;letter-spacing:.15em}.empty-schedule h3,.no-access h2{color:#1e293b;font-size:1.05rem;margin:6px 0}.empty-schedule p,.no-access p{max-width:500px;margin:auto;color:#64748b;font-size:.72rem;line-height:1.6}
+@media(max-width:1000px){.identity-card{grid-template-columns:auto 1fr 1fr}.identity-item{border:0}.access-pill{grid-column:2/-1}.identity-main{border:0}}@media(max-width:700px){.schedule-hero{align-items:stretch;flex-direction:column}.promotion-picker{min-width:0}.identity-card{grid-template-columns:auto 1fr}.identity-item,.access-pill{grid-column:1/-1;border-top:1px solid #edf1f6;border-right:0;padding-top:10px}.schedule-card-header,.schedule-footer{align-items:flex-start;flex-direction:column}.schedule-footer button{width:100%}}
+@media print{.sidebar,.schedule-hero,.promotion-picker,.schedule-footer button,.mobile-menu-btn{display:none!important}.main-content{overflow:visible!important}.schedule-page{max-width:none}.schedule-card{box-shadow:none}.schedule-scroll{overflow:visible}.schedule-table{min-width:100%;font-size:8px}.schedule-table tbody>tr>th,.schedule-table tbody>tr>td{height:90px}.course-slot{padding:5px}}
+</style>
+{% endblock %}

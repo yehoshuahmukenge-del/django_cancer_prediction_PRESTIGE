@@ -1,0 +1,97 @@
+{% extends 'cancer/base.html' %}
+{% load math_filters %}
+
+{% block title %}Historique - Prédictions Cancer{% endblock %}
+
+{% block content %}
+<h1 style="font-size: 2.5rem; margin-bottom: 2rem; background: linear-gradient(135deg, #06b6d4, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+    📋 Historique des Prédictions
+</h1>
+
+{% if predictions %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="color: #06b6d4;">Total: {{ total }} prédictions</h2>
+        <div style="color: #a0aec0;">Page {{ current_page }} sur {{ total_pages }}</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Âge</th>
+                <th>Taille Tumeur</th>
+                <th>Densité</th>
+                <th>CA-125</th>
+                <th>Probabilité</th>
+                <th>Résultat</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pred in predictions %}
+            <tr>
+                <td>#{{ pred.id }}</td>
+                <td>{{ pred.date_prediction|date:"d/m/Y H:i" }}</td>
+                <td>{{ pred.age_patiente }} ans</td>
+                <td>{{ pred.taille_tumeur|floatformat:2 }} mm</td>
+                <td>{{ pred.densite_mammaire }}/4</td>
+                <td>{{ pred.niveau_ca125|floatformat:1 }}</td>
+                <td>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ pred.probabilite_cancer|multiply:100 }}%"></div>
+                    </div>
+                    {{ pred.probabilite_cancer|multiply:100|floatformat:1 }}%
+                </td>
+                <td>
+                    {% if pred.resultat == 1 %}
+                        <span class="badge badge-cancer">Cancer ⚠️</span>
+                    {% else %}
+                        <span class="badge badge-sain">Sain ✓</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if total_pages > 1 %}
+    <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">
+        {% if current_page > 1 %}
+            <a href="?page=1" class="btn btn-primary">⏮️ Première</a>
+            <a href="?page={{ current_page|add:'-1' }}" class="btn btn-primary">⬅️ Précédente</a>
+        {% endif %}
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            {% for page_num in total_pages|range %}
+                {% if page_num == current_page %}
+                    <span style="padding: 0.5rem 0.75rem; background: #06b6d4; border-radius: 4px; color: #0f172a; font-weight: 600;">
+                        {{ page_num }}
+                    </span>
+                {% else %}
+                    <a href="?page={{ page_num }}" style="padding: 0.5rem 0.75rem; color: #06b6d4; text-decoration: none;">
+                        {{ page_num }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        {% if current_page < total_pages %}
+            <a href="?page={{ current_page|add:'1' }}" class="btn btn-primary">Suivante ➡️</a>
+            <a href="?page={{ total_pages }}" class="btn btn-primary">Dernière ⏭️</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 3rem;">
+    <p style="color: #a0aec0; font-size: 1.1rem; margin-bottom: 1.5rem;">Aucune prédiction pour le moment</p>
+    <a href="{% url 'cancer:predict' %}" class="btn btn-primary">🔍 Commencer une Prédiction</a>
+</div>
+{% endif %}
+
+<div style="text-align: center; margin-top: 2rem;">
+    <a href="{% url 'cancer:predict' %}" class="btn btn-primary">🔍 Nouvelle Prédiction</a>
+    <a href="{% url 'cancer:statistics' %}" class="btn btn-primary" style="margin-left: 1rem;">📈 Statistiques</a>
+</div>
+{% endblock %}

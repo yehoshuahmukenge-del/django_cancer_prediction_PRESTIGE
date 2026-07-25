@@ -1,0 +1,108 @@
+{% extends 'cancer/base.html' %}
+{% load static %}
+{% load math_filters %}
+
+{% block title %}Tableau de Bord - Prédiction Cancer{% endblock %}
+
+{% block content %}
+<h1 style="font-size: 2.5rem; margin-bottom: 2rem; background: linear-gradient(135deg, #06b6d4, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+    📊 Tableau de Bord
+</h1>
+
+<div class="grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total }}</div>
+        <div class="stat-label">Prédictions Totales</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: #10b981;">{{ sains }}</div>
+        <div class="stat-label">Résultats Sains ✓</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: #ef4444;">{{ cancer }}</div>
+        <div class="stat-label">Cancers Détectés ⚠️</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ taux_cancer|floatformat:1 }}%</div>
+        <div class="stat-label">Taux de Cancer</div>
+    </div>
+</div>
+
+{% if predictions %}
+<div class="card">
+    <h2 style="color: #06b6d4; margin-bottom: 1.5rem;">📋 Dernières Prédictions</h2>
+    
+    <div style="margin-bottom:2rem; padding:1rem; border:1px solid var(--border-color); border-radius:12px; background:rgba(255,255,255,0.03);">
+        <div style="color:#06b6d4; font-weight:700; margin-bottom:1rem;">📈 Performances du Modèle</div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:1rem;">
+            <img src="{% static 'images/model_performance_1.svg' %}" alt="Performance du modèle 1" style="width:100%; border-radius:8px; border:1px solid var(--border-color);" />
+            <img src="{% static 'images/model_performance_2.svg' %}" alt="Performance du modèle 2" style="width:100%; border-radius:8px; border:1px solid var(--border-color);" />
+        </div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Âge</th>
+                <th>Taille Tumeur</th>
+                <th>CA-125</th>
+                <th>Probabilité</th>
+                <th>Résultat</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pred in predictions %}
+            <tr>
+                <td>{{ pred.date_prediction|date:"d/m/Y H:i" }}</td>
+                <td>{{ pred.age_patiente }} ans</td>
+                <td>{{ pred.taille_tumeur|floatformat:2 }} mm</td>
+                <td>{{ pred.niveau_ca125|floatformat:1 }}</td>
+                <td>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ pred.probabilite_cancer|multiply:100 }}%"></div>
+                    </div>
+                    {{ pred.probabilite_cancer|multiply:100|floatformat:1 }}%
+                </td>
+                <td>
+                    {% if pred.resultat == 1 %}
+                        <span class="badge badge-cancer">Cancer ⚠️</span>
+                    {% else %}
+                        <span class="badge badge-sain">Sain ✓</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div style="text-align: center; margin-top: 2rem;">
+    <a href="{% url 'cancer:predict' %}" class="btn btn-primary">🔍 Nouvelle Prédiction</a>
+    <a href="{% url 'cancer:history' %}" class="btn btn-primary" style="margin-left: 1rem;">📋 Voir l'Historique</a>
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 3rem;">
+    <p style="color: #a0aec0; font-size: 1.1rem; margin-bottom: 1.5rem;">Aucune prédiction pour le moment</p>
+    <a href="{% url 'cancer:predict' %}" class="btn btn-primary">🔍 Commencer une Prédiction</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends 'cancer/base.html' %}
+
+{% block title %}Résultat - Prédiction Cancer{% endblock %}
+
+{% block content %}
+<h1 style="font-size: 2.5rem; margin-bottom: 2rem; background: linear-gradient(135deg, #06b6d4, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+    📋 Résultat de la Prédiction
+</h1>
+
+<div class="result-card {% if resultat_class == 'cancer' %}cancer{% endif %}" style="animation: slideIn 0.5s ease-out;">
+    <div class="result-icon">
+        {% if resultat_class == 'cancer' %}
+            ⚠️
+        {% else %}
+            ✓
+        {% endif %}
+    </div>
+    <div class="result-text">{{ resultat_text }}</div>
+    
+    <div class="progress-bar" style="margin: 2rem 0;">
+        <div class="progress-fill" style="width: {{ proba_percent }}%; background: {% if resultat_class == 'cancer' %}linear-gradient(90deg, #ef4444, #dc2626){% else %}linear-gradient(90deg, #10b981, #059669){% endif %};"></div>
+    </div>
+    
+    <div style="font-size: 2rem; font-weight: 700; margin: 1rem 0;">
+        {{ proba_percent|floatformat:1 }}%
+    </div>
+    <div style="color: #a0aec0; font-size: 0.9rem;">
+        Probabilité de Cancer
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <h2 style="color: #06b6d4; margin-bottom: 1.5rem;">📊 Détails de l'Analyse</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+        <div style="background: rgba(6, 182, 212, 0.1); padding: 1rem; border-radius: 8px; border-left: 3px solid #06b6d4;">
+            <div style="color: #a0aec0; font-size: 0.9rem;">Taille Tumeur</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: #06b6d4;">{{ prediction.taille_tumeur|floatformat:2 }} mm</div>
+        </div>
+        
+        <div style="background: rgba(6, 182, 212, 0.1); padding: 1rem; border-radius: 8px; border-left: 3px solid #06b6d4;">
+            <div style="color: #a0aec0; font-size: 0.9rem;">Densité Mammaire</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: #06b6d4;">{{ prediction.densite_mammaire }}/4</div>
+        </div>
+        
+        <div style="background: rgba(236, 72, 153, 0.1); padding: 1rem; border-radius: 8px; border-left: 3px solid #ec4899;">
+            <div style="color: #a0aec0; font-size: 0.9rem;">Âge de la Patiente</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: #ec4899;">{{ prediction.age_patiente }} ans</div>
+        </div>
+        
+        <div style="background: rgba(236, 72, 153, 0.1); padding: 1rem; border-radius: 8px; border-left: 3px solid #ec4899;">
+            <div style="color: #a0aec0; font-size: 0.9rem;">Niveau CA-125</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: #ec4899;">{{ prediction.niveau_ca125|floatformat:1 }} U/mL</div>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem; background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(236, 72, 153, 0.1));">
+    <h3 style="color: #06b6d4; margin-bottom: 1rem;">💡 Interprétation</h3>
+    <p style="color: #a0aec0; line-height: 1.8;">
+        {% if resultat_class == 'cancer' %}
+            <strong style="color: #ef4444;">⚠️ Résultat: Cancer Détecté</strong><br>
+            Cette prédiction indique une probabilité élevée de cancer du sein. 
+            Il est recommandé de consulter un médecin spécialiste pour une confirmation diagnostique 
+            et un plan de traitement approprié.
+        {% else %}
+            <strong style="color: #10b981;">✓ Résultat: Normal</strong><br>
+            Cette prédiction indique une faible probabilité de cancer du sein. 
+            Cependant, un suivi régulier et des examens médicaux périodiques sont recommandés 
+            pour la détection précoce.
+        {% endif %}
+    </p>
+</div>
+
+<div style="text-align: center; margin-top: 2rem;">
+    <a href="{% url 'cancer:predict' %}" class="btn btn-primary">🔍 Nouvelle Prédiction</a>
+    <a href="{% url 'cancer:history' %}" class="btn btn-primary" style="margin-left: 1rem;">📋 Voir l'Historique</a>
+    <a href="{% url 'cancer:dashboard' %}" class="btn btn-primary" style="margin-left: 1rem;">📊 Tableau de Bord</a>
+</div>
+
+<style>
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}

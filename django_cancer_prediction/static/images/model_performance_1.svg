@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="420" viewBox="0 0 800 420">
+  <rect width="800" height="420" rx="20" fill="#0f172a"/>
+  <text x="40" y="55" fill="#06b6d4" font-size="24" font-family="Arial">Accuracy</text>
+  <text x="40" y="95" fill="#ffffff" font-size="42" font-family="Arial">0.95</text>
+  <rect x="40" y="120" width="720" height="20" rx="10" fill="#1e293b"/>
+  <rect x="40" y="120" width="684" height="20" rx="10" fill="#10b981"/>
+  <text x="40" y="190" fill="#06b6d4" font-size="24" font-family="Arial">Precision / Recall</text>
+  <text x="40" y="235" fill="#ffffff" font-size="24" font-family="Arial">Precision: 0.95</text>
+  <text x="40" y="270" fill="#ffffff" font-size="24" font-family="Arial">Recall: 0.95</text>
+  <text x="40" y="305" fill="#ffffff" font-size="24" font-family="Arial">F1-score: 0.95</text>
+  <circle cx="650" cy="240" r="60" fill="none" stroke="#ec4899" stroke-width="16"/>
+  <circle cx="650" cy="240" r="60" fill="none" stroke="#06b6d4" stroke-width="16" stroke-dasharray="180 300"/>
+</svg>

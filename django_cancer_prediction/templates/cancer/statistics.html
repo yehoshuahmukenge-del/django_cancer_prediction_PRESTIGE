@@ -1,0 +1,99 @@
+{% extends 'cancer/base.html' %}
+{% load math_filters %}
+
+{% block title %}Statistiques - Prédictions Cancer{% endblock %}
+
+{% block content %}
+<h1 style="font-size: 2.5rem; margin-bottom: 2rem; background: linear-gradient(135deg, #06b6d4, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+    📈 Statistiques Globales
+</h1>
+
+{% if error %}
+<div class="error">{{ error }}</div>
+{% else %}
+
+<div class="grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total }}</div>
+        <div class="stat-label">Total Prédictions</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: #10b981;">{{ sain_count }}</div>
+        <div class="stat-label">Cas Sains</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: #ef4444;">{{ cancer_count }}</div>
+        <div class="stat-label">Cas Cancer</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ cancer_percent|floatformat:1 }}%</div>
+        <div class="stat-label">Taux de Cancer</div>
+    </div>
+</div>
+
+<div class="card">
+    <h2 style="color: #06b6d4; margin-bottom: 1.5rem;">🎯 Probabilités Moyennes</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;">
+        <div>
+            <div style="color: #a0aec0; margin-bottom: 0.5rem;">Cas Cancer</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ avg_proba_cancer }}%; background: linear-gradient(90deg, #ef4444, #dc2626);"></div>
+            </div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: #ef4444;">{{ avg_proba_cancer|floatformat:1 }}%</div>
+        </div>
+        
+        <div>
+            <div style="color: #a0aec0; margin-bottom: 0.5rem;">Cas Sains</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ avg_proba_sain }}%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+            </div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: #10b981;">{{ avg_proba_sain|floatformat:1 }}%</div>
+        </div>
+    </div>
+</div>
+
+{% if age_stats %}
+<div class="card">
+    <h2 style="color: #06b6d4; margin-bottom: 1.5rem;">👤 Statistiques par Âge</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Âge</th>
+                <th>Total</th>
+                <th>Cancer</th>
+                <th>Taux Cancer</th>
+                <th>Taille Tumeur Moy.</th>
+                <th>CA-125 Moy.</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for age, stats in age_stats.items %}
+            <tr>
+                <td>{{ age }} ans</td>
+                <td>{{ stats.total }}</td>
+                <td>
+                    {% if stats.cancer > 0 %}
+                        <span class="badge badge-cancer">{{ stats.cancer }}</span>
+                    {% else %}
+                        <span class="badge badge-sain">0</span>
+                    {% endif %}
+                </td>
+                <td>{{ stats.cancer|divide:stats.total|multiply:100|floatformat:1 }}%</td>
+                <td>{{ stats.taille_avg|floatformat:2 }} mm</td>
+                <td>{{ stats.ca125_avg|floatformat:1 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div style="text-align: center; margin-top: 2rem;">
+    <a href="{% url 'cancer:predict' %}" class="btn btn-primary">🔍 Nouvelle Prédiction</a>
+    <a href="{% url 'cancer:history' %}" class="btn btn-primary" style="margin-left: 1rem;">📋 Historique</a>
+</div>
+
+{% endif %}
+{% endblock %}

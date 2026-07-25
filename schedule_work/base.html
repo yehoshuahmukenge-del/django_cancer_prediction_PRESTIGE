@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestion des Résultats Universitaires{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Responsive Sidebar */
+        .sidebar {
+            transition: all 0.3s ease;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            z-index: 40;
+        }
+        
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+        
+        /* Mobile Menu Toggle */
+        .mobile-menu-btn {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .sidebar {
+                width: 100% !important;
+                max-width: 256px;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .sidebar {
+                position: relative;
+                transform: translateX(0) !important;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 30;
+        }
+        
+        .sidebar-overlay.active {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar-overlay {
+                display: none;
+            }
+            
+            .sidebar-overlay.active {
+                display: block;
+            }
+        }
+        
+        /* Responsive Tables */
+        .table-responsive {
+            overflow-x: auto;
+        }
+        
+        @media (max-width: 640px) {
+            .table-responsive table {
+                font-size: 0.875rem;
+            }
+            
+            .table-responsive th,
+            .table-responsive td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50">
+    {% if user.is_authenticated %}
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar w-64 bg-gradient-to-b from-blue-900 to-blue-800 text-white shadow-lg collapsed" id="sidebar">
+            <div class="p-6 border-b border-blue-700">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl font-bold">GRU</h1>
+                        <p class="text-sm text-blue-200">Gestion des Résultats</p>
+                    </div>
+                    <button class="mobile-menu-btn text-white text-xl" id="closeSidebar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <nav class="mt-6 overflow-y-auto" style="max-height: calc(100vh - 300px);">
+                <a href="{% url 'emploi_du_temps' %}" class="block px-6 py-3 hover:bg-blue-700 transition text-sm md:text-base">
+                    <i class="fas fa-calendar-week mr-3"></i> <span class="hidden sm:inline">Emploi du temps</span>
+                </a>
+                {% if user.roles.all|length > 0 %}
+                    {% for role in user.roles.all %}
+                        {% if role.libelle == 'Admin' %}
+                        <a href="{% url 'admin:index' %}" class="block px-6 py-3 hover:bg-blue-700 transition text-sm md:text-base">
+                            <i class="fas fa-tachometer-alt mr-3"></i> <span class="hidden sm:inline">Tableau de bord</span>
+                        </a>
+                        <a href="{% url 'admin:users_utilisateur_changelist' %}" class="block px-6 py-3 hover:bg-blue-700 transition text-sm md:text-base">
+                            <i class="fas fa-users mr-3"></i> <span class="hidden sm:inline">Utilisateurs</span>
+                        </a>
+                        <a href="{% url 'admin:academic_filiere_changelist' %}" class="block px-6 py-3 hover:bg-blue-700 transition text-sm md:text-base">
+                            <i class="fas fa-graduation-cap mr-3"></i> <span class="hidden sm:inline">Filières</span>
+                        </a>
+                        <a href="{% url 'admin:academic_cours_changelist' %}" class="block px-6 py-3 hover:bg-blue-700 transition text-sm md:text-base">
+                            <i class="fas fa-book mr-3"></i> <span class="hidden sm:inline">Cours</span>
+                        </a>
+                        <a href="{% url 'admin:users_etudiant_changelist' %}" class="block px-6 py-3 hover:bg-blue-700 transition text-sm md:text-base">
+                            <i class="fas fa-user-graduate mr-3"></i> <span class="hidden sm:inline">Étudiants</span>
+                        </a>
+                        <a href="{% url 'admin:academic_cotation_changelist' %}" class="block px-6 py-3 hover:bg-blue-700 transition text-sm md:text-base">
+                            <i class="fas fa-chart-bar mr-3"></i> <span class="hidden sm:inline">Notes</span>
+                        </a>
+                        {% endif %}
+                        {% if role.libelle == 'Chef de filière' %}
+                        <a href="{% url 'admin:index' %}" class="block px-6 py-3 hover:bg-blue-700 transition text-sm md:text-base">
+                            <i class="fas fa-tachometer-alt mr-3"></i> <span class="hidden sm:inline">Mon Tableau</span>
+                        </a>
+                        <a href="{% url 'admin:academic_cours_changelist' %}" class="block px-6 py-3 hover:bg-blue-700 transition text-sm md:text-base">
+                            <i class="fas fa-book mr-3"></i> <span class="hidden sm:inline">Mes Cours</span>
+                        </a>
+                        <a href="{% url 'admin:users_etudiant_changelist' %}" class="block px-6 py-3 hover:bg-blue-700 transition text-sm md:text-base">
+                            <i class="fas fa-user-graduate mr-3"></i> <span class="hidden sm:inline">Étudiants</span>
+                        </a>
+                        {% endif %}
+                        {% if role.libelle == 'Enseignant' %}
+                        <a href="{% url 'admin:academic_cotation_changelist' %}" class="block px-6 py-3 hover:bg-blue-700 transition text-sm md:text-base">
+                            <i class="fas fa-chart-bar mr-3"></i> <span class="hidden sm:inline">Saisir Notes</span>
+                        </a>
+                        <a href="{% url 'admin:academic_cours_changelist' %}" class="block px-6 py-3 hover:bg-blue-700 transition text-sm md:text-base">
+                            <i class="fas fa-book mr-3"></i> <span class="hidden sm:inline">Mes Cours</span>
+                        </a>
+                        {% endif %}
+                        {% if role.libelle == 'Étudiant' %}
+                        <a href="{% url 'admin:academic_evaluation_changelist' %}" class="block px-6 py-3 hover:bg-blue-700 transition text-sm md:text-base">
+                            <i class="fas fa-file-alt mr-3"></i> <span class="hidden sm:inline">Mes Résultats</span>
+                        </a>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            </nav>
+            
+            <div class="absolute bottom-0 left-0 right-0 p-4 md:p-6 border-t border-blue-700 bg-blue-900">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="ml-3 hidden sm:block">
+                        <p class="text-sm font-semibold">{{ user.get_full_name }}</p>
+                        <p class="text-xs text-blue-200 truncate">{{ user.email }}</p>
+                    </div>
+                </div>
+                <a href="{% url 'logout' %}" class="block text-center px-4 py-2 bg-red-600 hover:bg-red-700 rounded transition text-sm">
+                    Déconnexion
+                </a>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden main-content">
+            <!-- Top Bar -->
+            <div class="bg-white border-b border-gray-200 px-4 md:px-8 py-4 shadow-sm sticky top-0 z-20">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-4">
+                        <button class="mobile-menu-btn text-gray-600 text-xl" id="openSidebar">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-800">{% block page_title %}Accueil{% endblock %}</h2>
+                    </div>
+                    <div class="flex items-center gap-2 md:gap-4">
+                        <span class="text-sm md:text-base text-gray-600 hidden sm:inline">{{ user.username }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="flex-1 overflow-auto">
+                <div class="p-4 md:p-8">
+                    {% if messages %}
+                    <div class="mb-6">
+                        {% for message in messages %}
+                        <div class="p-4 rounded-lg {% if message.tags %}{{ message.tags }}{% else %}bg-blue-100 text-blue-800{% endif %} text-sm md:text-base">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Mobile Menu Toggle
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const openSidebarBtn = document.getElementById('openSidebar');
+        const closeSidebarBtn = document.getElementById('closeSidebar');
+        
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+            sidebarOverlay.classList.toggle('active');
+        }
+        
+        openSidebarBtn?.addEventListener('click', toggleSidebar);
+        closeSidebarBtn?.addEventListener('click', toggleSidebar);
+        sidebarOverlay?.addEventListener('click', toggleSidebar);
+        
+        // Close sidebar on link click (mobile)
+        if (window.innerWidth <= 768) {
+            document.querySelectorAll('.sidebar nav a').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (!sidebar.classList.contains('collapsed')) {
+                        toggleSidebar();
+                    }
+                });
+            });
+        }
+    </script>
+    {% else %}
+    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-blue-800 p-4">
+        <div class="w-full max-w-md">
+            <div class="bg-white rounded-lg shadow-xl p-6 md:p-8">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl md:text-4xl font-bold text-blue-900 mb-2">GRU</h1>
+                    <p class="text-gray-600 text-sm md:text-base">Gestion des Résultats Universitaires</p>
+                </div>
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nom d'utilisateur</label>
+                        <input type="text" name="username" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
+                        <input type="password" name="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base" required>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 text-sm md:text-base">Se connecter</button>
+                </form>
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <p class="text-xs md:text-sm text-gray-600 text-center"><strong>Comptes de démonstration :</strong></p>
+                    <div class="mt-2 space-y-1 text-xs md:text-sm">
+                        <p class="text-gray-600 text-center">Admin : <code class="bg-gray-200 px-2 py-1 rounded">admin</code> / <code class="bg-gray-200 px-2 py-1 rounded">admin123</code></p>
+                        <p class="text-gray-600 text-center">Prof : <code class="bg-gray-200 px-2 py-1 rounded">prof_dupont</code> / <code class="bg-gray-200 px-2 py-1 rounded">prof123</code></p>
+                        <p class="text-gray-600 text-center">Étudiant : <code class="bg-gray-200 px-2 py-1 rounded">etudiant_martin</code> / <code class="bg-gray-200 px-2 py-1 rounded">etudiant123</code></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
